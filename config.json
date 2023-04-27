@@ -1,0 +1,31 @@
+{
+	"days":21,
+	"weeks":6,
+	"months":3,
+	"years":0,
+	"destination":"/home/bla/projects/backup/test/",
+	"folders":
+	[
+		"/home/bla/.ssh/",
+		"/home/bla/.vimrc",
+		"/home/bla/.bashrc",
+		"/home/bla/Music/",
+		"/home/bla/Documents/",
+		"/home/bla/Pictures/",
+		"/home/bla/.config/",
+
+		"/home/bla/projects/",
+		"/home/bla/.p/",
+		"/home/bla/theresa/",
+		"/home/bla/calibre/",
+		"/home/bla/dsa/",
+		"/home/bla/ydl.sh",
+		"/home/bla/swt/"
+	],
+	"ignore":
+	[
+		".git/",
+		".build/"
+	],
+	"compressed":False
+}
