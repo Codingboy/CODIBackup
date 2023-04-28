@@ -54,18 +54,28 @@ def peek(timestring):
 	return folderStructure
 
 
-def recover(timestring):
+def recover(timestring, toBeRecovered=None):
 	folderStructure = peek(timestring)
 	for file in folderStructure["files"].keys():
 		if file != "":
-			archive = folderStructure["files"][file][:folderStructure["files"][file].find("/")]
-			ar = Archive(destination.join(archive, False), "r")
-			ar.extract(file[1:], "/")
-			logger.info("extracting " + file)
-			ar.close()
+			extract = True
+			if toBeRecovered is not None:
+				if file.startswith(toBeRecovered):
+					extract = True
+			if extract:
+				archive = folderStructure["files"][file][:folderStructure["files"][file].find("/")]
+				ar = Archive(destination.join(archive, False), "r")
+				ar.extract(file[1:], "/")
+				logger.info("extracting " + file)
+				ar.close()
 	for folder in folderStructure["folders"].keys():
-		if not os.path.isdir(folder):
-			os.makedirs(folder)
+		extract = True
+		if toBeRecovered is not None:
+			if folder.startswith(toBeRecovered):
+				extract = True
+		if extract:
+			if not os.path.isdir(folder):
+				os.makedirs(folder)
 
 
 f = File(Path("~/projects/backup/config.json", False), "r")  #TODO change to .config dir
@@ -434,6 +444,8 @@ if __name__ == "__main__":
 	parser.add_argument("-b", "--backup", action="store_true", help="creates a backup")
 	parser.add_argument("-p", "--peek", help="lists all files from a backup")
 	parser.add_argument("-r", "--recover", help="recovers a specific state from the backups")
+	parser.add_argument("-a", "--all", action="store_true", help="sets flag to restore everything")
+	parser.add_argument("-s", "--selection", help="select file or folder to be recovered")
 	args = parser.parse_args()
 
 	if args.backup:
@@ -444,4 +456,10 @@ if __name__ == "__main__":
 			for file in folderStructure["files"].keys():
 				print(folderStructure["files"][file])
 		elif args.recover is not None:
-			recover(args.recover)
+			toBeRecovered = None
+			if args.all is not None:
+				recover(args.recover, toBeRecovered)
+			else:
+				if args.selection is not None:
+					toBeRecovered = args.selection
+					recover(args.recover, toBeRecovered)

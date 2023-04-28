@@ -88,10 +88,12 @@ In peek mode a list of all included files is printed including the information i
 ### Recover
 
 ```
-./main.py --recover 2023-04-28T00:00:00
+./main.py --recover 2023-04-28T00:00:00 --all
+./main.py --recover 2023-04-28T00:00:00 --selection /home/bla/projects/epubreaderapp/
 ```
 
 Recovers the system from a backup.
+Single files or folders can also be recovered.
 
 **WARNING** All already existing files in the system are overwritten.
 
@@ -101,6 +103,5 @@ Recovers the system from a backup.
 ---
 
 ## TODO
-- recover single files/folders
 - windows support
 ---
