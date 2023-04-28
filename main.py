@@ -10,7 +10,6 @@ from codi.codiio import Path, File
 from codi.codiar import Archive
 
 #TODO hour backups
-#TODO check if edited before checking hash
 
 
 def peek(timestring):
@@ -27,8 +26,8 @@ def peek(timestring):
 		if relevant:
 			for file in backup["files"].keys():
 				if file not in folderStructure["files"].keys():
-					if backup["files"][file] != "":
-						folderStructure["files"][file] = "/" + backup["created"] + file
+					if backup["files"][file]["hash"] != "":
+						folderStructure["files"][file] = backup["created"] + ".zip" + file
 					else:
 						folderStructure["files"][file] = ""
 			for folder in backup["folders"].keys():
@@ -38,36 +37,23 @@ def peek(timestring):
 	return folderStructure
 
 
-def recover(timestring, dst=""):
-	if len(dst) >= 1:
-		if dst[-1] == "/":
-			dst = dst[:-1]
+def recover(timestring):
 	folderStructure = peek(timestring)
 	for file in folderStructure["files"].keys():
 		if file != "":
-			cp(destination + folderStructure["files"][file], dst + file)
+			archive = folderStructure["files"][file][:folderStructure["files"][file].find("/")]
+			ar = Archive(destination.join(archive, False), "r")
+			ar.extract(file[1:], "/")
+			print(file)
+			ar.close()
 	for folder in folderStructure["folders"].keys():
-		if not os.path.isdir(dst + folder):
-			os.makedirs(dst + folder)
+		if not os.path.isdir(folder):
+			os.makedirs(folder)
 
 
-def cp(src, dst):
-	dirname = os.path.dirname(dst)
-	if not os.path.isdir(dirname):
-		os.makedirs(dirname)
-	shutil.copyfile(src, dst)
-
-
-def mv(src, dst):
-	dirname = os.path.dirname(dst)
-	if not os.path.isdir(dirname):
-		os.makedirs(dirname)
-	shutil.move(src, dst)
-
-
-config = None
-with open("config.json", "r") as f:
-	config = json.load(f)
+f = File("~/projects/backup/config.json", "r")#TODO change to .config dir
+config = f.readJSON()
+f.close()
 
 destination = Path(config["destination"], True)
 if not destination.isdir():
@@ -82,18 +68,18 @@ for f in destination.listdir():
 backupTimes.sort(reverse=True)
 for b in backupTimes:
 	p = destination.join(b + ".zip", False)
-	f = File(p, "r")
-	backup = f.readJSON()
+	ar = Archive(p, "r")
+	backup = json.loads(ar.read("state.json"))
 	backup["state"] = "uptodate"
 	backups.append(backup)
-	f.close()
+	ar.close()
 
 
 def backup():
 	global backups
 	global destination
 	timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-	currentZip = Archive(destination.join(timestamp + ".zip"), False, "w")
+	currentZip = Archive(destination.join(timestamp + ".zip", False), "w")
 	backupType = "d"
 	if len(backups) == 0:
 		backupType = "b"
@@ -119,7 +105,8 @@ def backup():
 		if not Path(folder, True).isdir():
 			currentBackup["folders"][folder] = False
 
-	currentZip.writeString(json.dumps(currentBackup), currentBackup["created"] + ".json")
+	currentZip.writeString(json.dumps(currentBackup, indent=4), "state.json")
+	currentZip.close()
 
 	backupDays = config["days"]
 	for backup in backups:
@@ -249,10 +236,14 @@ def backup():
 					break
 		elif backupType == "y":
 			break
+
 	for backup in backups:
 		if backup["state"] == "changed":
 			del backup["state"]
-			currentZip.writeString(json.dumps(backup, indent=4), backup["created"] + ".json")
+			currentZip = Archive(destination.join(backup["created"] + ".zip", False), "a")
+			currentZip.remove("state.json")
+			currentZip.writeString(json.dumps(backup, indent=4), "state.json")
+			currentZip.close()
 
 
 def mergeInto(update, base):
@@ -268,11 +259,14 @@ def mergeInto(update, base):
 			else:
 				base["files"][file] = update["files"][file]
 				base["state"] = "changed"
-			if file in baseZip.listdir():#TODO replace with contains for better performance
-				baseZip.remove(file)
+			if file in baseZip.listdir():  #TODO replace with contains for better performance
+				baseZip.remove(file[1:])
 		else:
+			if file in base["files"].keys():
+				if base["files"][file]["hash"] != "":
+					baseZip.remove(file[1:])
 			base["files"][file] = update["files"][file]
-			baseZip.writeString(updateZip.read(file), file)
+			baseZip.writeString(updateZip.read(file[1:]), file[1:])
 			base["state"] = "changed"
 	for folder in update["folders"].keys():
 		exists = update["folders"][folder]
@@ -284,7 +278,7 @@ def mergeInto(update, base):
 			base["folders"][folder] = exists
 	baseZip.close()
 	updateZip.close()
-	destination.join(update["created"] + ".zip").rm()
+	destination.join(update["created"] + ".zip", False).rm()
 
 
 def backupFolder(src, currentBackup, currentZip):
@@ -318,9 +312,9 @@ def backupFolder(src, currentBackup, currentZip):
 		storedHash = ""
 		storedEdited = ""
 		for backup in backups:
-			if file in backup["files"].keys():
-				storedHash = backup["files"][file]["hash"]
-				storedEdited = backup["files"][file]["edited"]
+			if src.path in backup["files"].keys():
+				storedHash = backup["files"][src.path]["hash"]
+				storedEdited = backup["files"][src.path]["edited"]
 				break
 		if src.getmtime().strftime("%Y-%m-%dT%H:%M:%S") != storedEdited:
 			f = File(src, "rb")
@@ -334,7 +328,7 @@ def backupFolder(src, currentBackup, currentZip):
 			calculatedHash = sha256.hexdigest()
 			if calculatedHash != storedHash:
 				currentBackup["files"][src.path] = {"hash": calculatedHash, "edited": src.getmtime().strftime("%Y-%m-%dT%H:%M:%S")}
-				currentZip.write(src, src.path)
+				currentZip.write(src, src.path[1:])
 
 
 if __name__ == "__main__":
@@ -355,6 +349,6 @@ if __name__ == "__main__":
 		if args.peek is not None:
 			folderStructure = peek(args.peek)
 			for file in folderStructure["files"].keys():
-				print(file)
+				print(folderStructure["files"][file])
 		elif args.recover is not None:
 			recover(args.recover)
