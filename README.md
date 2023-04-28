@@ -8,12 +8,13 @@ Depending on the configuration you can restore multiple backup points which are 
 
 ## Installation
 
-Simply copy the project to your system, navigate to it in the console and execute main.py
+Open your crontab by:
 ```
-wget 
-unp
-cd 
-python3 main.py --backup
+crontab -e
+```
+And add the following to make sure backups are generated hourly (or chnage it to your needs)
+```
+0 * * * * * /home/bla/projects/backup/CODIBackup.sh
 ```
 
 ---
@@ -23,9 +24,11 @@ python3 main.py --backup
 Here is an example configuration:
 ```
 {
-	"days":21,
-	"weeks":6,
-	"months":3,
+	"minutes":0,
+	"hours":24,
+	"days":28,
+	"weeks":12,
+	"months":12,
 	"years":0,
 	"destination":"/home/bla/backup/",
 	"folders":
@@ -41,24 +44,63 @@ Here is an example configuration:
 	"ignore":
 	[
 		".git/",
-		".build/"
+		".build/",
+		"__pycache__/",
+		"*.sqlite",
+		"*.log"
 	]
 }
+
 ```
-Assuming you backup daily this configuartions ensures all backups are kept for 21 days. Even if you do hundres of backups a day.
-If a backup is older than 21 days it is meged into an older backup which stores all updates within a week. Note: when backups get merged the individual backup can never be restored because they are modified. So on for months and years. If backups are older than all accumulated times they are merged in a base backup.
-Note months are considered 28 days and years 28*12 days to ensure good mergeability.
+
+Assuming you backup hourly this configuartions ensures you have up to 24 hour-backups.
+As they get older they will be merged into day-backups.
+A day-backup contains **not** contain **all** information from the day-backups.
+If you made multiple changes to a file which are stored in different hour-backups, they will be inaccessible after the merge.
+Only the newest state will be accessible.
+But for sure you can access older bay-backups.
+If a day-backup is older than 28 days + 24 hours it is meged into an week-backup which stores all updates within a week.
+So on for months and years.
+If backups are older than all accumulated times they are merged in a base-backup.
+Note: months are considered 28 days and years 28*12 days to ensure good mergeability.
 
 ---
 
 ## Useage
+
+In the console this program has three modes of operation:
+
+### Backup
+
+```
+./main.py --backup
+```
+Creates a backup.
+
+### Peek
+
+```
+./main.py --peek 2023-04-28T00:00:00
+```
+
+In peek mode a list of all included files is printed including the information in which backup the file is stored.
+
+### Recover
+
+```
+./main.py --recover 2023-04-28T00:00:00
+```
+
+Recovers the system from a backup.
+
+**WARNING** All already existing files in the system are overwritten.
+
 ---
 
 ## FAQ
 ---
 
 ## TODO
-- support for filepatterns in ignore
-- option to compress backups
+- recover single files/folders
 - windows support
 ---

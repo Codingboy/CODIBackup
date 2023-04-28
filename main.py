@@ -8,8 +8,25 @@ import shutil
 from argparse import ArgumentParser
 from codi.codiio import Path, File
 from codi.codiar import Archive
+from logging import getLogger, DEBUG, FileHandler, StreamHandler, Formatter
+from pathlib import PurePath
 
-#TODO hour backups
+__version__ = "0.0.1"
+
+PROJECTNAME = "CODIBackup"
+LOGNAME = PROJECTNAME + ".log"
+
+logger = getLogger(PROJECTNAME)
+logger.setLevel(DEBUG)
+#fh = FileHandler(LOGNAME)
+#fh.setLevel(DEBUG)
+ch = StreamHandler()
+ch.setLevel(DEBUG)
+formatter = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+#logger.addHandler(fh)
+logger.addHandler(ch)
 
 
 def peek(timestring):
@@ -44,14 +61,14 @@ def recover(timestring):
 			archive = folderStructure["files"][file][:folderStructure["files"][file].find("/")]
 			ar = Archive(destination.join(archive, False), "r")
 			ar.extract(file[1:], "/")
-			print(file)
+			logger.info("extracting " + file)
 			ar.close()
 	for folder in folderStructure["folders"].keys():
 		if not os.path.isdir(folder):
 			os.makedirs(folder)
 
 
-f = File("~/projects/backup/config.json", "r")#TODO change to .config dir
+f = File(Path("~/projects/backup/config.json", False), "r")  #TODO change to .config dir
 config = f.readJSON()
 f.close()
 
@@ -68,6 +85,7 @@ for f in destination.listdir():
 backupTimes.sort(reverse=True)
 for b in backupTimes:
 	p = destination.join(b + ".zip", False)
+	logger.info("loading " + p.path)
 	ar = Archive(p, "r")
 	backup = json.loads(ar.read("state.json"))
 	backup["state"] = "uptodate"
@@ -80,7 +98,7 @@ def backup():
 	global destination
 	timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 	currentZip = Archive(destination.join(timestamp + ".zip", False), "w")
-	backupType = "d"
+	backupType = "min"
 	if len(backups) == 0:
 		backupType = "b"
 	currentBackup = {"files": {}, "folders": {}, "created": timestamp, "edited": timestamp, "type": backupType}
@@ -107,13 +125,81 @@ def backup():
 
 	currentZip.writeString(json.dumps(currentBackup, indent=4), "state.json")
 	currentZip.close()
+	logger.info("backup created")
+
+	backupMinutes = config["minutes"]
+	for backup in backups:
+		backupType = backup["type"]
+		if backupType == "min":
+			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
+			if datetime.now() > created + timedelta(minutes=backupMinutes * 1):
+				backup["type"] = "h"
+				backup["state"] = "changed"
+		else:
+			break
+	for i in reversed(range(len(backups))):
+		backup = backups[i]
+		backupType = backup["type"]
+		if backupType == "h":
+			while True:
+				if i > 0:
+					b = backups[i - 1]
+					if b["type"] == backupType:
+						created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
+						edited = datetime.strptime(b["edited"], "%Y-%m-%dT%H:%M:%S")
+						if edited < created + timedelta(minutes=60):
+							mergeInto(b, backup)
+							del backups[i - 1]
+							i -= 1
+						else:
+							break
+					else:
+						break
+				else:
+					break
+		elif backupType == "min":
+			break
+
+	backupHours = config["hours"]
+	for backup in backups:
+		backupType = backup["type"]
+		if backupType == "h":
+			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
+			if datetime.now() > created + timedelta(hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
+				backup["type"] = "d"
+				backup["state"] = "changed"
+		else:
+			break
+	for i in reversed(range(len(backups))):
+		backup = backups[i]
+		backupType = backup["type"]
+		if backupType == "d":
+			while True:
+				if i > 0:
+					b = backups[i - 1]
+					if b["type"] == backupType:
+						created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
+						edited = datetime.strptime(b["edited"], "%Y-%m-%dT%H:%M:%S")
+						if edited < created + timedelta(hours=24):
+							mergeInto(b, backup)
+							del backups[i - 1]
+							i -= 1
+						else:
+							break
+					else:
+						break
+				else:
+					break
+		elif backupType == "h":
+			break
 
 	backupDays = config["days"]
 	for backup in backups:
 		backupType = backup["type"]
 		if backupType == "d":
 			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
-			if datetime.now() > created + timedelta(days=backupDays * 1):
+			if datetime.now() > created + timedelta(days=backupDays * 1) + timedelta(hours=backupHours *
+			                                                                         1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "w"
 				backup["state"] = "changed"
 		else:
@@ -146,7 +232,8 @@ def backup():
 		backupType = backup["type"]
 		if backupType == "w":
 			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
-			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7):
+			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7) + timedelta(hours=backupHours * 1) + timedelta(
+			    minutes=backupMinutes * 1):
 				backup["type"] = "m"
 				backup["state"] = "changed"
 		else:
@@ -179,7 +266,8 @@ def backup():
 		backupType = backup["type"]
 		if backupType == "m":
 			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
-			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7 + backupMonths * 28):
+			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7 + backupMonths * 28) + timedelta(
+			    hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "y"
 				backup["state"] = "changed"
 		else:
@@ -212,7 +300,8 @@ def backup():
 		backupType = backup["type"]
 		if backupType == "y":
 			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
-			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7 + backupMonths * 28 + backupYears * 12 * 28):
+			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7 + backupMonths * 28 + backupYears * 12 *
+			                                        28) + timedelta(hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "b"
 				backup["state"] = "changed"
 		else:
@@ -247,6 +336,7 @@ def backup():
 
 
 def mergeInto(update, base):
+	logger.info("merging " + update["created"] + " into " + base["created"])
 	baseZip = Archive(destination.join(base["created"] + ".zip", False), "a")
 	updateZip = Archive(destination.join(update["created"] + ".zip", False), "a")
 	base["edited"] = update["edited"]
@@ -286,7 +376,8 @@ def backupFolder(src, currentBackup, currentZip):
 	if src.isdir():
 		filename = src.basename()
 		for ignored in config["ignore"]:
-			if filename == ignored:
+			#if filename == ignored:
+			if PurePath(src.path).match(ignored):
 				return
 		for f in src.listdir():
 			backupFolder(f, currentBackup, currentZip)
@@ -307,7 +398,8 @@ def backupFolder(src, currentBackup, currentZip):
 	elif src.isfile():
 		filename = src.basename()
 		for ignored in config["ignore"]:
-			if filename == ignored:
+			#if filename == ignored:
+			if PurePath(src.path).match(ignored):
 				return
 		storedHash = ""
 		storedEdited = ""
@@ -329,6 +421,7 @@ def backupFolder(src, currentBackup, currentZip):
 			if calculatedHash != storedHash:
 				currentBackup["files"][src.path] = {"hash": calculatedHash, "edited": src.getmtime().strftime("%Y-%m-%dT%H:%M:%S")}
 				currentZip.write(src, src.path[1:])
+				logger.info("backing up " + src.path)
 
 
 if __name__ == "__main__":

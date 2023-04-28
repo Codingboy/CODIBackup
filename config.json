@@ -1,18 +1,24 @@
 {
-	"days":21,
-	"weeks":6,
-	"months":3,
+	"minutes":0,
+	"hours":24,
+	"days":28,
+	"weeks":12,
+	"months":12,
 	"years":0,
-	"destination":"/home/bla/projects/backup/test/",
+	"destination":"/home/bla/backup/",
 	"folders":
+	[
+		"/home/bla/projects/"
+	],
+	"_folders":
 	[
 		"/home/bla/.ssh/",
 		"/home/bla/.vimrc",
 		"/home/bla/.bashrc",
+		"/home/bla/.config/",
 		"/home/bla/Music/",
 		"/home/bla/Documents/",
 		"/home/bla/Pictures/",
-		"/home/bla/.config/",
 
 		"/home/bla/projects/",
 		"/home/bla/.p/",
@@ -25,7 +31,9 @@
 	"ignore":
 	[
 		".git/",
-		".build/"
-	],
-	"compressed":False
+		".build/",
+		"__pycache__/",
+		"*.log",
+		"*.sqlite"
+	]
 }
