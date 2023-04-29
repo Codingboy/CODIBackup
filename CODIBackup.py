@@ -65,7 +65,7 @@ def recover(timestring, toBeRecovered=None):
 			if extract:
 				archive = folderStructure["files"][file][:folderStructure["files"][file].find("/")]
 				ar = Archive(destination.join(archive, False), "r")
-				ar.extract(file[1:], "/")
+				ar.extract(file[file.find("/") + 1:], file[:file.find("/")])
 				logger.info("extracting " + file)
 				ar.close()
 	for folder in folderStructure["folders"].keys():
@@ -78,7 +78,7 @@ def recover(timestring, toBeRecovered=None):
 				os.makedirs(folder)
 
 
-f = File(Path("~/projects/backup/config.json", False), "r")  #TODO change to .config dir
+f = File(Path(os.path.abspath(__file__), False).parent().join("config.json", False), "r")  #TODO change to .config dir
 config = f.readJSON()
 f.close()
 
@@ -360,13 +360,13 @@ def mergeInto(update, base):
 				base["files"][file] = update["files"][file]
 				base["state"] = "changed"
 			if file in baseZip.listdir():  #TODO replace with contains for better performance
-				baseZip.remove(file[1:])
+				baseZip.remove(file[file.find("/") + 1:])
 		else:
 			if file in base["files"].keys():
 				if base["files"][file]["hash"] != "":
-					baseZip.remove(file[1:])
+					baseZip.remove(file[file.find("/") + 1:])
 			base["files"][file] = update["files"][file]
-			baseZip.writeString(updateZip.read(file[1:]), file[1:])
+			baseZip.writeString(updateZip.read(file[file.find("/") + 1:]), file[file.find("/") + 1:])
 			base["state"] = "changed"
 	for folder in update["folders"].keys():
 		exists = update["folders"][folder]
@@ -430,7 +430,7 @@ def backupFolder(src, currentBackup, currentZip):
 			calculatedHash = sha256.hexdigest()
 			if calculatedHash != storedHash:
 				currentBackup["files"][src.path] = {"hash": calculatedHash, "edited": src.getmtime().strftime("%Y-%m-%dT%H:%M:%S")}
-				currentZip.write(src, src.path[1:])
+				currentZip.write(src, src.path[src.path.find("/") + 1:])
 				logger.info("backing up " + src.path)
 
 

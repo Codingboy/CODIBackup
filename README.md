@@ -8,13 +8,26 @@ Depending on the configuration you can restore multiple backup points which are 
 
 ## Installation
 
+```
+wget
+unzip CODIBackup.zip
+mv -r CODIBackup ~/
+rm CODIBackup.zip
+cd ~/CODIBackup
+chmod a+x main.py
+chmod a+r config.json
+```
+
+Additionaly you need to change the config.json
+In CODIBackup.sh you need to specify the correct path.
+
 Open your crontab by:
 ```
 crontab -e
 ```
 And add the following to make sure backups are generated hourly (or chnage it to your needs)
 ```
-0 * * * * * /home/bla/projects/backup/CODIBackup.sh
+0 * * * * * /home/bla/CODIBackup/CODIBackup.sh
 ```
 
 ---
@@ -63,6 +76,9 @@ If a day-backup is older than 28 days + 24 hours it is meged into an week-backup
 So on for months and years.
 If backups are older than all accumulated times they are merged in a base-backup.
 Note: months are considered 28 days and years 28*12 days to ensure good mergeability.
+If you specify a folder, it should end with a "/".
+Do not use shortcuts like "~/".
+If the script is run it might run as root user and therefor might specify a wrong folder.
 
 ---
 
@@ -75,6 +91,7 @@ In the console this program has three modes of operation:
 ```
 ./main.py --backup
 ```
+
 Creates a backup.
 
 ### Peek
@@ -99,9 +116,43 @@ Single files or folders can also be recovered.
 
 ---
 
+## Windows Support
+
+This tool was written with Linux in mind.
+It should also work under Windows but is 100% untested and I bet you will encounter (fixable) bugs.
+
+Here is also a big **WARNING** for an **unfixable** design decision.
+This script was mainly written for Linux.
+There exists a known problem with the Windows support.
+Windows has no root directory but multiple drives like "c:/" and "d:/".
+A Ziparchive does not have drives but only folders.
+So in a backup "/home/bla/test.txt" becomes "home/bla/test.txt".
+In windows "c:/users/bla/documents/test.txt" becomes "users/bla/documents/test.txt".
+And also "d:/users/bla/documents/test.txt" becomes "users/bla/documents/test.txt".
+**If a file has the same path in Windows except for the driveletter it will override a file in a backup wich will unrecoverable.**
+This is unlikely but definitive possible depending on your useage.
+You are warned.
+
+---
+
 ## FAQ
 ---
 
 ## TODO
-- windows support
+---
+
+## Known Issues
+
+- In Windows files with same path except driveletter override each other and can not be recovered.
+
+---
+
+## Contribution
+
+This work heavyly relieson the work of **yudilevi2** from Github who patched zipfile.py with the support to remove files from a zip archive.
+But the patch was never merged into the librayry.
+I include the patched code in this project and hope all are ok with it.
+If not, contact me.
+[Patched zipfile.py](https://github.com/python/cpython/blob/659eb048cc9cac73c46349eb29845bc5cd630f09/Lib/zipfile.py)
+
 ---
