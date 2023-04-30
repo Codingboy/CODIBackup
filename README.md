@@ -14,12 +14,17 @@ unzip CODIBackup.zip
 mv -r CODIBackup ~/
 rm CODIBackup.zip
 cd ~/CODIBackup
-chmod a+x main.py
+echo '#!/bin/bash' > CODIBackup.sh
+echo '' >> CODIBackup.sh
+echo "$(pwd)/CODIBackup.py --backup" >> CODIBackup.sh
+chmod a+x CODIBackup.py
+chmod a+x CODIBackup.sh
 chmod a+r config.json
 ```
 
 Additionaly you need to change the config.json
-In CODIBackup.sh you need to specify the correct path.
+
+Optionally if you want to automate backups you can use cron:
 
 Open your crontab by:
 ```
@@ -120,25 +125,24 @@ Single files or folders can also be recovered.
 
 This tool was written with Linux in mind.
 It should also work under Windows but is 100% untested and I bet you will encounter (fixable) bugs.
+If you encounter them, please report them.
+Otherwise they will not get fixed.
 
 Here is also a big **WARNING** for an **unfixable** design decision.
 This script was mainly written for Linux.
 There exists a known problem with the Windows support.
 Windows has no root directory but multiple drives like "c:/" and "d:/".
 A Ziparchive does not have drives but only folders.
-So in a backup "/home/bla/test.txt" becomes "home/bla/test.txt".
+So in Linux in a backup "/home/bla/test.txt" becomes "home/bla/test.txt".
 In windows "c:/users/bla/documents/test.txt" becomes "users/bla/documents/test.txt".
 And also "d:/users/bla/documents/test.txt" becomes "users/bla/documents/test.txt".
-**If a file has the same path in Windows except for the driveletter it will override a file in a backup wich will unrecoverable.**
+**If a file has the same path in Windows except for the driveletter it will override a file in a backup wich will be unrecoverable.**
 This is unlikely but definitive possible depending on your useage.
+I could have worked around it but with relatively heavy modifications and treating each OS separately.
+I thought the current solution might be ok for most Windows users.
+
 You are warned.
 
----
-
-## FAQ
----
-
-## TODO
 ---
 
 ## Known Issues
@@ -149,10 +153,16 @@ You are warned.
 
 ## Contribution
 
-This work heavyly relieson the work of **yudilevi2** from Github who patched zipfile.py with the support to remove files from a zip archive.
+This work heavyly relies on the work of **yudilevi2** from Github who patched zipfile.py with the support to remove files from a zip archive.
 But the patch was never merged into the librayry.
 I include the patched code in this project and hope all are ok with it.
 If not, contact me.
 [Patched zipfile.py](https://github.com/python/cpython/blob/659eb048cc9cac73c46349eb29845bc5cd630f09/Lib/zipfile.py)
 
+---
+
+## FAQ
+---
+
+## TODO
 ---
