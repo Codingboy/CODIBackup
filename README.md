@@ -1,6 +1,6 @@
 # CODI Backup
 
-This project can be used to generate backups from (parts of) you system.
+This project can be used to generate backups from (parts of) your system.
 If a file is already stored in an older backup and is unchanged, it will not be included in the next backup to minimize storage useage.
 Depending on the configuration you can restore multiple backup points which are merged together depending on the configuration.
 
@@ -154,7 +154,7 @@ You are warned.
 ## Contribution
 
 This work heavyly relies on the work of **yudilevi2** from Github who patched zipfile.py with the support to remove files from a zip archive.
-But the patch was never merged into the librayry.
+But the patch was never merged into the library.
 I include the patched code in this project and hope all are ok with it.
 If not, contact me.
 [Patched zipfile.py](https://github.com/python/cpython/blob/659eb048cc9cac73c46349eb29845bc5cd630f09/Lib/zipfile.py)
