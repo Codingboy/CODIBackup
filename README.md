@@ -121,6 +121,15 @@ Single files or folders can also be recovered.
 
 ---
 
+## Backupstrategy
+
+When using this tool you should specify a different physical storage than you are backing up to minimize risk of dataloss due to storage malfunction.
+You can also specify an external storage or even remote which is connected as an sshfs for example but it might be slower.
+You can also store the backup files via rsync on a remote storage.
+Note that all backup files are needed to restore your data.
+
+---
+
 ## Windows Support
 
 This tool was written with Linux in mind.
@@ -165,4 +174,7 @@ If not, contact me.
 ---
 
 ## TODO
+
+- Merge backup files into a single snapshot if required for an external archive
+
 ---
