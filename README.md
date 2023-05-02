@@ -84,6 +84,7 @@ Note: months are considered 28 days and years 28*12 days to ensure good mergeabi
 If you specify a folder, it should end with a "/".
 Do not use shortcuts like "~/".
 If the script is run it might run as root user and therefor might specify a wrong folder.
+The backup folder should not be backed up. Otherwise the backup might generate infinite data.
 
 ---
 
