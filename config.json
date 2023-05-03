@@ -30,6 +30,7 @@
 	],
 	"ignore":
 	[
+		"nobackup/",
 		".git/",
 		".build/",
 		"__pycache__/",
