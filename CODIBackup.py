@@ -107,7 +107,7 @@ def backup():
 	global backups
 	global destination
 	timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-	#currentZip = Archive(destination.join(timestamp + ".zip", False), "w")
+	currentZip = Archive(destination.join(timestamp + ".zip", False), "w")
 	backupType = "min"
 	if len(backups) == 0:
 		backupType = "b"
@@ -115,7 +115,7 @@ def backup():
 
 	for src in config["folders"]:
 		isFolder = os.path.isdir(src)
-		#backupFolder(Path(src, isFolder), currentBackup, currentZip)
+		backupFolder(Path(src, isFolder), currentBackup, currentZip)
 
 	folderStructure = {"files": {}, "folders": {}}
 	for backup in backups:
@@ -133,13 +133,9 @@ def backup():
 		if not Path(folder, True).isdir():
 			currentBackup["folders"][folder] = False
 
-	#currentZip.writeString(json.dumps(currentBackup, indent=4), "state.json")
-	#currentZip.close()
+	currentZip.writeString(json.dumps(currentBackup, indent=4), "state.json")
+	currentZip.close()
 	logger.info("backup created")
-
-	for backup in backups:
-		logger.info(backup["type"] + " " + backup["created"])
-	logger.info("----------------------")
 
 	backupMinutes = config["minutes"]
 	for backup in backups:
@@ -339,11 +335,6 @@ def backup():
 					break
 		elif backupType == "y":
 			break
-
-	for backup in backups:
-		logger.info(backup["type"] + " " + backup["created"])
-	logger.info("----------------------")
-	#exit(0)
 
 	for backup in backups:
 		if backup["state"] == "changed":
