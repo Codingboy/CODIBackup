@@ -111,6 +111,7 @@ def backup():
 
 	currentZip.writeString(json.dumps(currentBackup, indent=4), "state.json")
 	currentZip.close()
+	currentBackup["state"] = "uptodate"
 	backups.insert(0, currentBackup)
 	if verbose:
 		logger.info("backup created")
