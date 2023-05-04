@@ -31,13 +31,13 @@ logger.addHandler(ch)
 
 def peek(timestring):
 	global backups
-	timestamp = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S")
+	timestamp = datetime.strptime(timestring, "%Y%m%dT%H%M%S")
 	relevant = False
 	folderStructure = {"files": {}, "folders": {}}
 	for backup in backups:
 		if not relevant:
 			created = backup["created"]
-			ts = datetime.strptime(created, "%Y-%m-%dT%H:%M:%S")
+			ts = datetime.strptime(created, "%Y%m%dT%H%M%S")
 			if ts <= timestamp:
 				relevant = True
 		if relevant:
@@ -63,9 +63,13 @@ def recover(timestring, toBeRecovered=None):
 				if file.startswith(toBeRecovered):
 					extract = True
 			if extract:
-				archive = folderStructure["files"][file][:folderStructure["files"][file].find("/")]
+				archive = folderStructure["files"][file][:folderStructure["files"][file].find(os.sep)]
+				if ":" == archive[-1]:
+					archive = archive[:-2]
 				ar = Archive(destination.join(archive, False), "r")
-				ar.extract(file[file.find("/") + 1:], file[:file.find("/")])
+				tmp = file[file.find(os.sep) + 1:]
+				tmp = tmp.replace(os.sep, "/")
+				ar.extract(tmp, file[:file.find(os.sep)+1])
 				if verbose:
 					logger.info("extracting " + file)
 				ar.close()
@@ -82,7 +86,7 @@ def recover(timestring, toBeRecovered=None):
 def backup():
 	global backups
 	global destination
-	timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+	timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
 	currentZip = Archive(destination.join(timestamp + ".zip", False), "w")
 	backupType = "min"
 	if len(backups) == 0:
@@ -120,7 +124,7 @@ def backup():
 	for backup in backups:
 		backupType = backup["type"]
 		if backupType == "min":
-			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
+			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
 			if datetime.now() > created + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "h"
 				backup["state"] = "changed"
@@ -134,8 +138,8 @@ def backup():
 				if i > 0:
 					b = backups[i - 1]
 					if b["type"] == backupType:
-						created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
-						edited = datetime.strptime(b["edited"], "%Y-%m-%dT%H:%M:%S")
+						created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
+						edited = datetime.strptime(b["edited"], "%Y%m%dT%H%M%S")
 						if edited < created + timedelta(minutes=60):
 							mergeInto(b, backup)
 							del backups[i - 1]
@@ -153,7 +157,7 @@ def backup():
 	for backup in backups:
 		backupType = backup["type"]
 		if backupType == "h":
-			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
+			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
 			if datetime.now() > created + timedelta(hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "d"
 				backup["state"] = "changed"
@@ -167,8 +171,8 @@ def backup():
 				if i > 0:
 					b = backups[i - 1]
 					if b["type"] == backupType:
-						created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
-						edited = datetime.strptime(b["edited"], "%Y-%m-%dT%H:%M:%S")
+						created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
+						edited = datetime.strptime(b["edited"], "%Y%m%dT%H%M%S")
 						if edited < created + timedelta(hours=24):
 							mergeInto(b, backup)
 							del backups[i - 1]
@@ -186,7 +190,7 @@ def backup():
 	for backup in backups:
 		backupType = backup["type"]
 		if backupType == "d":
-			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
+			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
 			if datetime.now() > created + timedelta(days=backupDays * 1) + timedelta(hours=backupHours *
 			                                                                         1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "w"
@@ -201,8 +205,8 @@ def backup():
 				if i > 0:
 					b = backups[i - 1]
 					if b["type"] == backupType:
-						created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
-						edited = datetime.strptime(b["edited"], "%Y-%m-%dT%H:%M:%S")
+						created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
+						edited = datetime.strptime(b["edited"], "%Y%m%dT%H%M%S")
 						if edited < created + timedelta(days=7):
 							mergeInto(b, backup)
 							del backups[i - 1]
@@ -220,7 +224,7 @@ def backup():
 	for backup in backups:
 		backupType = backup["type"]
 		if backupType == "w":
-			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
+			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
 			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7) + timedelta(hours=backupHours * 1) + timedelta(
 			    minutes=backupMinutes * 1):
 				backup["type"] = "m"
@@ -235,8 +239,8 @@ def backup():
 				if i > 0:
 					b = backups[i - 1]
 					if b["type"] == backupType:
-						created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
-						edited = datetime.strptime(b["edited"], "%Y-%m-%dT%H:%M:%S")
+						created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
+						edited = datetime.strptime(b["edited"], "%Y%m%dT%H%M%S")
 						if edited < created + timedelta(days=28):
 							mergeInto(b, backup)
 							del backups[i - 1]
@@ -254,7 +258,7 @@ def backup():
 	for backup in backups:
 		backupType = backup["type"]
 		if backupType == "m":
-			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
+			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
 			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7 + backupMonths * 28) + timedelta(
 			    hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "y"
@@ -269,8 +273,8 @@ def backup():
 				if i > 0:
 					b = backups[i - 1]
 					if b["type"] == backupType:
-						created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
-						edited = datetime.strptime(b["edited"], "%Y-%m-%dT%H:%M:%S")
+						created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
+						edited = datetime.strptime(b["edited"], "%Y%m%dT%H%M%S")
 						if edited < created + timedelta(days=28 * 12):
 							mergeInto(b, backup)
 							del backups[i - 1]
@@ -288,7 +292,7 @@ def backup():
 	for backup in backups:
 		backupType = backup["type"]
 		if backupType == "y":
-			created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
+			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
 			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7 + backupMonths * 28 + backupYears * 12 *
 			                                        28) + timedelta(hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "b"
@@ -303,8 +307,8 @@ def backup():
 				if i > 0:
 					b = backups[i - 1]
 					if b["type"] == backupType:
-						created = datetime.strptime(backup["created"], "%Y-%m-%dT%H:%M:%S")
-						edited = datetime.strptime(b["edited"], "%Y-%m-%dT%H:%M:%S")
+						created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
+						edited = datetime.strptime(b["edited"], "%Y%m%dT%H%M%S")
 						mergeInto(b, backup)
 						del backups[i - 1]
 						i -= 1
@@ -340,13 +344,13 @@ def mergeInto(update, base):
 				base["files"][file] = update["files"][file]
 				base["state"] = "changed"
 			if file in baseZip.listdir():  #TODO replace with contains for better performance
-				baseZip.remove(file[file.find("/") + 1:])
+				baseZip.remove(file[file.find(os.sep) + 1:])
 		else:
 			if file in base["files"].keys():
 				if base["files"][file]["hash"] != "":
-					baseZip.remove(file[file.find("/") + 1:])
+					baseZip.remove(file[file.find(os.sep) + 1:])
 			base["files"][file] = update["files"][file]
-			baseZip.writeString(updateZip.read(file[file.find("/") + 1:]), file[file.find("/") + 1:])
+			baseZip.writeString(updateZip.read(file[file.find(os.sep) + 1:]), file[file.find(os.sep) + 1:])
 			base["state"] = "changed"
 	for folder in update["folders"].keys():
 		exists = update["folders"][folder]
@@ -398,7 +402,7 @@ def backupFolder(src, currentBackup, currentZip):
 				storedHash = backup["files"][src.path]["hash"]
 				storedEdited = backup["files"][src.path]["edited"]
 				break
-		if src.getmtime().strftime("%Y-%m-%dT%H:%M:%S") != storedEdited:
+		if src.getmtime().strftime("%Y%m%dT%H%M%S") != storedEdited:
 			f = File(src, "rb")
 			sha256 = hashlib.sha256()
 			while True:
@@ -409,8 +413,8 @@ def backupFolder(src, currentBackup, currentZip):
 			f.close()
 			calculatedHash = sha256.hexdigest()
 			if calculatedHash != storedHash:
-				currentBackup["files"][src.path] = {"hash": calculatedHash, "edited": src.getmtime().strftime("%Y-%m-%dT%H:%M:%S")}
-				currentZip.write(src, src.path[src.path.find("/") + 1:])
+				currentBackup["files"][src.path] = {"hash": calculatedHash, "edited": src.getmtime().strftime("%Y%m%dT%H%M%S")}
+				currentZip.write(src, src.path[src.path.find(os.sep) + 1:])
 				if verbose:
 					logger.info("backing up " + src.path)
 

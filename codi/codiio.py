@@ -9,8 +9,8 @@ class Path():
 		self.path = os.path.abspath(os.path.expanduser(path))
 		if folder:
 			if len(self.path) > 0:
-				if self.path[-1] != "/":
-					self.path += "/"
+				if self.path[-1] != os.sep:
+					self.path += os.sep
 
 	def __str__(self):
 		return self.path
@@ -59,12 +59,12 @@ class Path():
 	def parent(self):
 		if self.isroot():
 			return None
-		if self.path[-1] == "/":
+		if self.path[-1] == os.sep:
 			return Path(os.path.dirname(self.path[:-1]), True)
 		return Path(os.path.dirname(self.path), False)
 
 	def isroot(self):
-		if self.path == "/":
+		if self.path == os.sep:
 			return True
 		if len(self.path) >= 2:
 			if self.path[1] == ":":
@@ -80,19 +80,19 @@ class Path():
 				if os.path.isfile(path):
 					ret.append(Path(path, False))
 				if os.path.isdir(path):
-					path += "/"
+					path += os.sep
 					ret.append(Path(path, True))
 		return ret
 
 	def basename(self):
-		if self.path[-1] == "/":
-			return os.path.basename(self.path[:-1]) + "/"
+		if self.path[-1] == os.sep:
+			return os.path.basename(self.path[:-1]) + os.sep
 		return os.path.basename(self.path)
 
 	def relpath(self, path):
 		ret = os.path.relpath(path.path, self.path)
-		if path.path[-1] == "/":
-			ret += "/"
+		if path.path[-1] == os.sep:
+			ret += os.sep
 		return ret
 
 	def cp(self, dst):

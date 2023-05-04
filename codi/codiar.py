@@ -26,15 +26,15 @@ class Archive:
 
 	def _mkdirs(self, dirs):
 		if len(dirs) > 0:
-			if dirs[0] == "/":
+			if dirs[0] == os.sep:
 				dirs = dirs[1:]
 			d = ""
 			while True:
-				if "/" not in dirs:
+				if os.sep not in dirs:
 					break
-				d += dirs[:dirs.find("/")]
+				d += dirs[:dirs.find(os.sep)]
 				self.mkdir(d)
-				dirs = dirs[dirs.find("/") + 1:]
+				dirs = dirs[dirs.find(os.sep) + 1:]
 
 	def getmtime(self, src):
 		timestamp = self.zf.getinfo(src).date_time
@@ -62,6 +62,6 @@ class Archive:
 		for info in self.zf.infolist():
 			path = info.filename
 			if info.is_dir():
-				path += "/"
+				path += os.sep
 			ret.append(path)
 		return ret

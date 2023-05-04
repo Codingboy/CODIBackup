@@ -88,6 +88,40 @@ The backup folder should not be backed up. Otherwise the backup might generate i
 
 ---
 
+
+## Windows Configuration
+
+```
+{
+	"minutes":0,
+	"hours":24,
+	"days":28,
+	"weeks":12,
+	"months":12,
+	"years":0,
+	"destination":"C:/Users/bla/backup/",
+	"folders":
+	[
+		"C:/Users/bla/Desktop/",
+		"C:/Users/bla/Downloads/",
+		"C:/Users/bla/Documents/"
+	],
+	"ignore":
+	[
+		".git/",
+		".build/",
+		"__pycache__/",
+		"*.sqlite",
+		"*.log"
+	]
+}
+
+```
+
+Make sure you use forward slashes "/" instead of backslashes "\".
+
+---
+
 ## Useage
 
 In the console this program has three modes of operation:
@@ -134,7 +168,7 @@ Note that all backup files are needed to restore your data.
 ## Windows Support
 
 This tool was written with Linux in mind.
-It should also work under Windows but is 100% untested and I bet you will encounter (fixable) bugs.
+It should also work under Windows but is not well tested and you might encounter bugs.
 If you encounter them, please report them.
 Otherwise they will not get fixed.
 
