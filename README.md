@@ -130,7 +130,7 @@ Creates a backup.
 ### Peek
 
 ```
-./main.py --peek 2023-04-28T00:00:00
+./main.py --peek 20230428T000000
 ```
 
 In peek mode a list of all included files is printed including the information in which backup the file is stored.
