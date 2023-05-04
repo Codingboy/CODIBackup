@@ -66,7 +66,8 @@ def recover(timestring, toBeRecovered=None):
 				archive = folderStructure["files"][file][:folderStructure["files"][file].find("/")]
 				ar = Archive(destination.join(archive, False), "r")
 				ar.extract(file[file.find("/") + 1:], file[:file.find("/")])
-				logger.info("extracting " + file)
+				if verbose:
+					logger.info("extracting " + file)
 				ar.close()
 	for folder in folderStructure["folders"].keys():
 		extract = True
@@ -76,31 +77,6 @@ def recover(timestring, toBeRecovered=None):
 		if extract:
 			if not os.path.isdir(folder):
 				os.makedirs(folder)
-
-
-f = File(Path(os.path.abspath(__file__), False).parent().join("config.json", False), "r")  #TODO change to .config dir
-config = f.readJSON()
-f.close()
-
-destination = Path(config["destination"], True)
-if not destination.isdir():
-	destination.mkdir()
-
-backupTimes = []
-backups = []
-for f in destination.listdir():
-	if f.isfile():
-		t = f.basename()[:-4]
-		backupTimes.append(t)
-backupTimes.sort(reverse=True)
-for b in backupTimes:
-	p = destination.join(b + ".zip", False)
-	logger.info("loading " + p.path)
-	ar = Archive(p, "r")
-	backup = json.loads(ar.read("state.json"))
-	backup["state"] = "uptodate"
-	backups.append(backup)
-	ar.close()
 
 
 def backup():
@@ -136,7 +112,8 @@ def backup():
 	currentZip.writeString(json.dumps(currentBackup, indent=4), "state.json")
 	currentZip.close()
 	backups.insert(0, currentBackup)
-	logger.info("backup created")
+	if verbose:
+		logger.info("backup created")
 
 	backupMinutes = config["minutes"]
 	for backup in backups:
@@ -347,7 +324,8 @@ def backup():
 
 
 def mergeInto(update, base):
-	logger.info("merging " + update["created"] + " into " + base["created"])
+	if verbose:
+		logger.info("merging " + update["created"] + " into " + base["created"])
 	baseZip = Archive(destination.join(base["created"] + ".zip", False), "a")
 	updateZip = Archive(destination.join(update["created"] + ".zip", False), "a")
 	base["edited"] = update["edited"]
@@ -432,9 +410,13 @@ def backupFolder(src, currentBackup, currentZip):
 			if calculatedHash != storedHash:
 				currentBackup["files"][src.path] = {"hash": calculatedHash, "edited": src.getmtime().strftime("%Y-%m-%dT%H:%M:%S")}
 				currentZip.write(src, src.path[src.path.find("/") + 1:])
-				logger.info("backing up " + src.path)
+				if verbose:
+					logger.info("backing up " + src.path)
 
 
+destination = None
+backups = []
+verbose = False
 if __name__ == "__main__":
 	PROJECTNAME = "CODIBackup"
 
@@ -447,20 +429,58 @@ if __name__ == "__main__":
 	parser.add_argument("-r", "--recover", help="recovers a specific state from the backups")
 	parser.add_argument("-a", "--all", action="store_true", help="sets flag to restore everything")
 	parser.add_argument("-s", "--selection", help="select file or folder to be recovered")
+	parser.add_argument("-c", "--config", help="specify a configfile")
 	args = parser.parse_args()
+	valid = False
+	verbose = args.verbose
+
+	configfile = Path(os.path.abspath(__file__), False).parent().join("config.json", False)
+	if args.config is not None:
+		configfile = Path(os.path.abspath(os.path.expanduser(args.configfile)), False)
+
+	f = File(configfile, "r")  #TODO change to .config dir
+	config = f.readJSON()
+	f.close()
+
+	destination = Path(config["destination"], True)
+	if not destination.isdir():
+		destination.mkdir()
+
+	backupTimes = []
+	backups = []
+	for f in destination.listdir():
+		if f.isfile():
+			t = f.basename()[:-4]
+			backupTimes.append(t)
+	backupTimes.sort(reverse=True)
+	for b in backupTimes:
+		p = destination.join(b + ".zip", False)
+		if verbose:
+			logger.info("loading " + p.path)
+		ar = Archive(p, "r")
+		ba = json.loads(ar.read("state.json"))
+		ba["state"] = "uptodate"
+		backups.append(ba)
+		ar.close()
 
 	if args.backup:
 		backup()
+		valid = True
 	else:
 		if args.peek is not None:
 			folderStructure = peek(args.peek)
 			for file in folderStructure["files"].keys():
 				print(folderStructure["files"][file])
+			valid = True
 		elif args.recover is not None:
 			toBeRecovered = None
 			if args.all is not None:
 				recover(args.recover, toBeRecovered)
+				valid = True
 			else:
 				if args.selection is not None:
 					toBeRecovered = args.selection
 					recover(args.recover, toBeRecovered)
+					valid = True
+	if not valid:
+		parser.print_help()
