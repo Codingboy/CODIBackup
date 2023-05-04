@@ -1,3 +1,3 @@
 #!/bin/bash
 
-/home/bla/projects/backup/CODIBackup.py --backup
+/home/bla/projects/CODIBackup/CODIBackup.py --backup

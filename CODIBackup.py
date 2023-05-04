@@ -135,6 +135,7 @@ def backup():
 
 	currentZip.writeString(json.dumps(currentBackup, indent=4), "state.json")
 	currentZip.close()
+	backups.insert(0, currentBackup)
 	logger.info("backup created")
 
 	backupMinutes = config["minutes"]
