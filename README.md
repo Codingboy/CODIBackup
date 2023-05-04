@@ -9,7 +9,7 @@ Depending on the configuration you can restore multiple backup points which are 
 ## Installation
 
 ```
-wget https://github.com/Codingboy/CODIBackup/releases/download/v0.0.1/CODIBackup.zip
+wget https://github.com/Codingboy/CODIBackup/releases/download/v0.0.2/CODIBackup.zip
 unzip CODIBackup.zip
 mv -r CODIBackup ~/
 rm CODIBackup.zip
@@ -42,7 +42,7 @@ And add the following to make sure backups are generated hourly (or chnage it to
 Here is an example configuration:
 ```
 {
-	"minutes":0,
+	"minutes":1,
 	"hours":24,
 	"days":28,
 	"weeks":12,
@@ -93,7 +93,7 @@ The backup folder should not be backed up. Otherwise the backup might generate i
 
 ```
 {
-	"minutes":0,
+	"minutes":1,
 	"hours":24,
 	"days":28,
 	"weeks":12,
@@ -106,14 +106,7 @@ The backup folder should not be backed up. Otherwise the backup might generate i
 		"C:/Users/bla/Downloads/",
 		"C:/Users/bla/Documents/"
 	],
-	"ignore":
-	[
-		".git/",
-		".build/",
-		"__pycache__/",
-		"*.sqlite",
-		"*.log"
-	]
+	"ignore":[]
 }
 
 ```
@@ -145,12 +138,13 @@ In peek mode a list of all included files is printed including the information i
 ### Recover
 
 ```
-./main.py --recover 2023-04-28T00:00:00 --all
-./main.py --recover 2023-04-28T00:00:00 --selection /home/bla/projects/epubreaderapp/
+./main.py --recover 20230428T000000 --all
+./main.py --recover 20230428T000000 --selection /home/bla/projects/epubreaderapp/
 ```
 
 Recovers the system from a backup.
 Single files or folders can also be recovered.
+In the example above the state from the 28th of April 2023 is recovered.
 
 **WARNING** All already existing files in the system are overwritten.
 
