@@ -69,7 +69,7 @@ def recover(timestring, toBeRecovered=None):
 				ar = Archive(destination.join(archive, False), "r")
 				tmp = file[file.find(os.sep) + 1:]
 				tmp = tmp.replace(os.sep, "/")
-				ar.extract(tmp, file[:file.find(os.sep)+1])
+				ar.extract(tmp, file[:file.find(os.sep) + 1])
 				if verbose:
 					logger.info("extracting " + file)
 				ar.close()
@@ -113,12 +113,13 @@ def backup():
 		if not Path(folder, True).isdir():
 			currentBackup["folders"][folder] = False
 
-	currentZip.writeString(json.dumps(currentBackup, indent=4), "state.json")
-	currentZip.close()
-	currentBackup["state"] = "uptodate"
-	backups.insert(0, currentBackup)
-	if verbose:
-		logger.info("backup created")
+	if len(currentBackup["files"]) > 0 or len(currentBackup["folders"]) > 0:
+		currentZip.writeString(json.dumps(currentBackup, indent=4), "state.json")
+		currentZip.close()
+		currentBackup["state"] = "uptodate"
+		backups.insert(0, currentBackup)
+		if verbose:
+			logger.info("backup created")
 
 	backupMinutes = config["minutes"]
 	for backup in backups:
