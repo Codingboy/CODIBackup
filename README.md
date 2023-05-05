@@ -73,7 +73,7 @@ Here is an example configuration:
 
 Assuming you backup hourly this configuartions ensures you have up to 24 hour-backups.
 As they get older they will be merged into day-backups.
-A day-backup contains **not** contain **all** information from the day-backups.
+A day-backup contains **not all** information from the day-backups.
 If you made multiple changes to a file which are stored in different hour-backups, they will be inaccessible after the merge.
 Only the newest state will be accessible.
 But for sure you can access older bay-backups.
