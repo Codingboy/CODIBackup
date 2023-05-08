@@ -15,17 +15,18 @@ __version__ = "0.0.2"
 
 PROJECTNAME = "CODIBackup"
 LOGNAME = PROJECTNAME + ".log"
+LOGNAME = Path(os.path.abspath(__file__), False).parent().join(LOGNAME, False).path
 
 logger = getLogger(PROJECTNAME)
 logger.setLevel(DEBUG)
-#fh = FileHandler(LOGNAME)
-#fh.setLevel(DEBUG)
+fh = FileHandler(LOGNAME)
+fh.setLevel(DEBUG)
 ch = StreamHandler()
 ch.setLevel(DEBUG)
 formatter = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-#fh.setFormatter(formatter)
+fh.setFormatter(formatter)
 ch.setFormatter(formatter)
-#logger.addHandler(fh)
+logger.addHandler(fh)
 logger.addHandler(ch)
 
 
@@ -424,69 +425,72 @@ destination = None
 backups = []
 verbose = False
 if __name__ == "__main__":
-	PROJECTNAME = "CODIBackup"
+	try:
+		PROJECTNAME = "CODIBackup"
 
-	__version__ = "0.1.0"
+		__version__ = "0.1.0"
 
-	parser = ArgumentParser()
-	parser.add_argument("-v", "--verbose", action="store_true", help="prints what is done")
-	parser.add_argument("-b", "--backup", action="store_true", help="creates a backup")
-	parser.add_argument("-p", "--peek", help="lists all files from a backup")
-	parser.add_argument("-r", "--recover", help="recovers a specific state from the backups")
-	parser.add_argument("-a", "--all", action="store_true", help="sets flag to restore everything")
-	parser.add_argument("-s", "--selection", help="select file or folder to be recovered")
-	parser.add_argument("-c", "--config", help="specify a configfile")
-	args = parser.parse_args()
-	valid = False
-	verbose = args.verbose
+		parser = ArgumentParser()
+		parser.add_argument("-v", "--verbose", action="store_true", help="prints what is done")
+		parser.add_argument("-b", "--backup", action="store_true", help="creates a backup")
+		parser.add_argument("-p", "--peek", help="lists all files from a backup")
+		parser.add_argument("-r", "--recover", help="recovers a specific state from the backups")
+		parser.add_argument("-a", "--all", action="store_true", help="sets flag to restore everything")
+		parser.add_argument("-s", "--selection", help="select file or folder to be recovered")
+		parser.add_argument("-c", "--config", help="specify a configfile")
+		args = parser.parse_args()
+		valid = False
+		verbose = args.verbose
 
-	configfile = Path(os.path.abspath(__file__), False).parent().join("config.json", False)
-	if args.config is not None:
-		configfile = Path(os.path.abspath(os.path.expanduser(args.configfile)), False)
+		configfile = Path(os.path.abspath(__file__), False).parent().join("config.json", False)
+		if args.config is not None:
+			configfile = Path(os.path.abspath(os.path.expanduser(args.configfile)), False)
 
-	f = File(configfile, "r")  #TODO change to .config dir
-	config = f.readJSON()
-	f.close()
+		f = File(configfile, "r")  #TODO change to .config dir
+		config = f.readJSON()
+		f.close()
 
-	destination = Path(config["destination"], True)
-	if not destination.isdir():
-		destination.mkdir()
+		destination = Path(config["destination"], True)
+		if not destination.isdir():
+			destination.mkdir()
 
-	backupTimes = []
-	backups = []
-	for f in destination.listdir():
-		if f.isfile():
-			t = f.basename()[:-4]
-			backupTimes.append(t)
-	backupTimes.sort(reverse=True)
-	for b in backupTimes:
-		p = destination.join(b + ".zip", False)
-		if verbose:
-			logger.info("loading " + p.path)
-		ar = Archive(p, "r")
-		ba = json.loads(ar.read("state.json"))
-		ba["state"] = "uptodate"
-		backups.append(ba)
-		ar.close()
+		backupTimes = []
+		backups = []
+		for f in destination.listdir():
+			if f.isfile():
+				t = f.basename()[:-4]
+				backupTimes.append(t)
+		backupTimes.sort(reverse=True)
+		for b in backupTimes:
+			p = destination.join(b + ".zip", False)
+			if verbose:
+				logger.info("loading " + p.path)
+			ar = Archive(p, "r")
+			ba = json.loads(ar.read("state.json"))
+			ba["state"] = "uptodate"
+			backups.append(ba)
+			ar.close()
 
-	if args.backup:
-		backup()
-		valid = True
-	else:
-		if args.peek is not None:
-			folderStructure = peek(args.peek)
-			for file in folderStructure["files"].keys():
-				print(folderStructure["files"][file])
+		if args.backup:
+			backup()
 			valid = True
-		elif args.recover is not None:
-			toBeRecovered = None
-			if args.all is not None:
-				recover(args.recover, toBeRecovered)
+		else:
+			if args.peek is not None:
+				folderStructure = peek(args.peek)
+				for file in folderStructure["files"].keys():
+					print(folderStructure["files"][file])
 				valid = True
-			else:
-				if args.selection is not None:
-					toBeRecovered = args.selection
+			elif args.recover is not None:
+				toBeRecovered = None
+				if args.all is not None:
 					recover(args.recover, toBeRecovered)
 					valid = True
-	if not valid:
-		parser.print_help()
+				else:
+					if args.selection is not None:
+						toBeRecovered = args.selection
+						recover(args.recover, toBeRecovered)
+						valid = True
+		if not valid:
+			parser.print_help()
+	except Exception as e:
+		logger.error("asd", e)
