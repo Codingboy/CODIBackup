@@ -121,6 +121,9 @@ def backup():
 		backups.insert(0, currentBackup)
 		if verbose:
 			logger.info("backup created")
+	else:
+		currentZip.close()
+		destination.join(currentBackup["created"] + ".zip", False).rm()
 
 	backupMinutes = config["minutes"]
 	for backup in backups:
@@ -446,7 +449,7 @@ if __name__ == "__main__":
 		if args.config is not None:
 			configfile = Path(os.path.abspath(os.path.expanduser(args.configfile)), False)
 
-		f = File(configfile, "r")  #TODO change to .config dir
+		f = File(configfile, "r")
 		config = f.readJSON()
 		f.close()
 
