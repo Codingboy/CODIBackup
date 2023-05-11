@@ -89,7 +89,7 @@ def backup():
 	global destination
 	timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
 	if len(backups)>0:
-		if timestamp<=datetime.strptime(backups[0]["created"], "%Y%m%dT%H%M%S"):
+		if datetime.strptime(timestamp, "%Y%m%dT%H%M%S")<=datetime.strptime(backups[0]["created"], "%Y%m%dT%H%M%S"):
 			return
 	currentZip = Archive(destination.join(timestamp + ".zip", False), "w")
 	backupType = "min"
