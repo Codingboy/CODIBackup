@@ -8,7 +8,7 @@ import shutil
 from argparse import ArgumentParser
 from codi.codiio import Path, File
 from codi.codiar import Archive
-from logging import getLogger, DEBUG, FileHandler, StreamHandler, Formatter
+from logging import getLogger, DEBUG, FileHandler, StreamHandler, Formatter, INFO
 from pathlib import PurePath
 
 __version__ = "0.0.3"
@@ -18,11 +18,11 @@ LOGNAME = PROJECTNAME + ".log"
 LOGNAME = Path(os.path.abspath(__file__), False).parent().join(LOGNAME, False).path
 
 logger = getLogger(PROJECTNAME)
-logger.setLevel(DEBUG)
+logger.setLevel(INFO)
 fh = FileHandler(LOGNAME)
-fh.setLevel(DEBUG)
+fh.setLevel(INFO)
 ch = StreamHandler()
-ch.setLevel(DEBUG)
+ch.setLevel(INFO)
 formatter = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
 ch.setFormatter(formatter)
@@ -123,7 +123,7 @@ def backup():
 		currentBackup["state"] = "uptodate"
 		backups.insert(0, currentBackup)
 		if verbose:
-			logger.info("backup created")
+			logger.info("created "+currentBackup["created"]+".zip")
 	else:
 		currentZip.close()
 		destination.join(currentBackup["created"] + ".zip", False).rm()
@@ -338,7 +338,7 @@ def backup():
 
 def mergeInto(update, base):
 	if verbose:
-		logger.info("merging " + update["created"] + " into " + base["created"])
+		logger.info("merging " + update["created"] + ".zip into " + base["created"]+".zip")
 	baseZip = Archive(destination.join(base["created"] + ".zip", False), "a")
 	updateZip = Archive(destination.join(update["created"] + ".zip", False), "a")
 	base["edited"] = update["edited"]
@@ -470,7 +470,7 @@ if __name__ == "__main__":
 		for b in backupTimes:
 			p = destination.join(b + ".zip", False)
 			if verbose:
-				logger.info("loading " + p.path)
+				logger.debug("loading " + p.path)
 			ar = Archive(p, "r")
 			ba = json.loads(ar.read("state.json"))
 			ba["state"] = "uptodate"
@@ -499,4 +499,4 @@ if __name__ == "__main__":
 		if not valid:
 			parser.print_help()
 	except Exception as e:
-		logger.error("asd", e)
+		logger.error("exception occured", e)
