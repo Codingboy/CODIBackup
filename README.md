@@ -73,11 +73,11 @@ Here is an example configuration:
 
 Assuming you backup hourly this configuartions ensures you have up to 24 hour-backups.
 As they get older they will be merged into day-backups.
-A day-backup contains **not all** information from the day-backups.
+A day-backup contains **not all** information from the hour-backups.
 If you made multiple changes to a file which are stored in different hour-backups, they will be inaccessible after the merge.
 Only the newest state will be accessible.
 But for sure you can access older bay-backups.
-If a day-backup is older than 28 days + 24 hours it is meged into an week-backup which stores all updates within a week.
+If a day-backup is older than 28 days + 24 hours it is merged into a week-backup which stores all updates within a week.
 So on for months and years.
 If backups are older than all accumulated times they are merged in a base-backup.
 Note: months are considered 28 days and years 28*12 days to ensure good mergeability.
@@ -111,7 +111,7 @@ The backup folder should not be backed up. Otherwise the backup might generate i
 
 ```
 
-Make sure you use forward slashes "/" instead of backslashes "\".
+Make sure you use forward slash "/" instead of backslash "\\".
 
 ---
 

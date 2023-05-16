@@ -1,9 +1,9 @@
 {
-	"minutes":0,
-	"hours":1,
-	"days":1,
-	"weeks":0,
-	"months":0,
+	"minutes":1,
+	"hours":24,
+	"days":28,
+	"weeks":12,
+	"months":12,
 	"years":0,
 	"destination":"/home/bla/backup/",
 	"folders":
