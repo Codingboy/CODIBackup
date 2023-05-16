@@ -191,11 +191,12 @@ You are warned.
 
 ## Contribution
 
-This work heavyly relies on the work of **yudilevi2** from Github who patched zipfile.py with the support to remove files from a zip archive.
+This work heavyly relies on the work of **yudilevi2** and **danny0838** from Github who patched zipfile.py with the support to remove files from a zip archive.
 But the patch was never merged into the library.
 I include the patched code in this project and hope all are ok with it.
 If not, contact me.
-[Patched zipfile.py](https://github.com/python/cpython/blob/659eb048cc9cac73c46349eb29845bc5cd630f09/Lib/zipfile.py)
+ - [buggy zipfile.py](https://github.com/python/cpython/blob/659eb048cc9cac73c46349eb29845bc5cd630f09/Lib/zipfile.py)
+ - [improved version](https://github.com/python/cpython/compare/main...danny0838:cpython:gh-51067)
 
 ---
 

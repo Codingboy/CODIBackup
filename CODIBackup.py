@@ -330,9 +330,7 @@ def backup():
 			del backup["state"]
 			currentZip = Archive(destination.join(backup["created"] + ".zip", False), "a")
 			if verbose:
-				logger.info("rewrite "+backup["created"]+".zip/state.json with type="+backup["type"])
-				logger.debug(backup)
-				logger.debug(currentZip.listdir())
+				logger.info("rewrite " + backup["created"] + ".zip/state.json with type=" + backup["type"])
 			currentZip.remove("state.json")
 			currentZip.writeString(json.dumps(backup, indent=4), "state.json")
 			currentZip.close()
@@ -341,13 +339,16 @@ def backup():
 def mergeInto(update, base):
 	if verbose:
 		logger.info("merging " + update["created"] + ".zip into " + base["created"] + ".zip")
-		logger.debug(update)
 	baseZip = Archive(destination.join(base["created"] + ".zip", False), "a")
-	logger.debug(baseZip.listdir())
 	updateZip = Archive(destination.join(update["created"] + ".zip", False), "a")
 	base["edited"] = update["edited"]
+	base["state"] = "changed"
 	for file in update["files"]:
 		if update["files"][file]["hash"] == "":
+			fileExists = False
+			if file in base["files"].keys():
+				if base["files"][file]["hash"] != "":
+					fileExists = True
 			if base["type"] == "b":
 				#if file in base["files"].keys():
 				del base["files"][file]
@@ -355,14 +356,15 @@ def mergeInto(update, base):
 			else:
 				base["files"][file] = update["files"][file]
 				base["state"] = "changed"
-			#if file in baseZip.listdir():  #TODO replace with contains for better performance
-			logger.info(baseZip.listdir())
-			baseZip.remove(file[file.find(os.sep) + 1:])#TODO does this work?!!!
-			logger.info(baseZip.listdir())
+			if fileExists:
+				baseZip.remove(file[file.find(os.sep) + 1:])  #TODO temporary removed due to bugged functionality
+				logger.info("remove "+file+" from "+base["created"]+".zip")
 		else:
 			if file in base["files"].keys():
 				if base["files"][file]["hash"] != "":
-					baseZip.remove(file[file.find(os.sep) + 1:])
+					#pass
+					baseZip.remove(file[file.find(os.sep) + 1:])  #TODO temporary removed due to bugged functionality
+					logger.info("remove "+file+" from "+base["created"]+".zip")
 			base["files"][file] = update["files"][file]
 			baseZip.writeString(updateZip.read(file[file.find(os.sep) + 1:]), file[file.find(os.sep) + 1:])
 			base["state"] = "changed"
@@ -374,7 +376,6 @@ def mergeInto(update, base):
 				base["state"] = "changed"
 		else:
 			base["folders"][folder] = exists
-	logger.debug(baseZip.listdir())
 	baseZip.close()
 	updateZip.close()
 	destination.join(update["created"] + ".zip", False).rm()

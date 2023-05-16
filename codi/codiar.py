@@ -1,4 +1,4 @@
-from codi.codizipfile import ZipFile, ZIP_DEFLATED
+from .zipfile import ZipFile, ZIP_DEFLATED
 from codi.codiio import Path, File
 import datetime
 
@@ -7,10 +7,10 @@ class Archive:
 	def __init__(self, path, mode, compression=ZIP_DEFLATED):
 		self.path = path
 		self.mode = mode
-		self.zf = self._open(path, mode, mode)
+		self.zf = self._open(path, mode, compression)
 
 	def _open(self, path, mode, compression=ZIP_DEFLATED):
-		self.zf = ZipFile(path.path, mode, compression=8)
+		self.zf = ZipFile(path.path, mode, compression=compression)
 		return self.zf
 
 	def write(self, path, arcname=None, compress_type=None, compresslevel=None):
