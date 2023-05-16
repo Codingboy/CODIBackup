@@ -18,11 +18,11 @@ LOGNAME = PROJECTNAME + ".log"
 LOGNAME = Path(os.path.abspath(__file__), False).parent().join(LOGNAME, False).path
 
 logger = getLogger(PROJECTNAME)
-logger.setLevel(INFO)
+logger.setLevel(DEBUG)
 fh = FileHandler(LOGNAME)
-fh.setLevel(INFO)
+fh.setLevel(DEBUG)
 ch = StreamHandler()
-ch.setLevel(INFO)
+ch.setLevel(DEBUG)
 formatter = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
 ch.setFormatter(formatter)
@@ -87,9 +87,10 @@ def recover(timestring, toBeRecovered=None):
 def backup():
 	global backups
 	global destination
-	timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-	if len(backups)>0:
-		if datetime.strptime(timestamp, "%Y%m%dT%H%M%S")<=datetime.strptime(backups[0]["created"], "%Y%m%dT%H%M%S"):
+	now = datetime.now()
+	timestamp = now.strftime("%Y%m%dT%H%M%S")
+	if len(backups) > 0:
+		if now <= datetime.strptime(backups[0]["created"], "%Y%m%dT%H%M%S"):
 			return
 	currentZip = Archive(destination.join(timestamp + ".zip", False), "w")
 	backupType = "min"
@@ -123,7 +124,7 @@ def backup():
 		currentBackup["state"] = "uptodate"
 		backups.insert(0, currentBackup)
 		if verbose:
-			logger.info("created "+currentBackup["created"]+".zip")
+			logger.info("created " + currentBackup["created"] + ".zip")
 	else:
 		currentZip.close()
 		destination.join(currentBackup["created"] + ".zip", False).rm()
@@ -133,7 +134,7 @@ def backup():
 		backupType = backup["type"]
 		if backupType == "min":
 			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
-			if datetime.now() > created + timedelta(minutes=backupMinutes * 1):
+			if now > created + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "h"
 				backup["state"] = "changed"
 		else:
@@ -166,7 +167,7 @@ def backup():
 		backupType = backup["type"]
 		if backupType == "h":
 			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
-			if datetime.now() > created + timedelta(hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
+			if now > created + timedelta(hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "d"
 				backup["state"] = "changed"
 		else:
@@ -199,8 +200,7 @@ def backup():
 		backupType = backup["type"]
 		if backupType == "d":
 			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
-			if datetime.now() > created + timedelta(days=backupDays * 1) + timedelta(hours=backupHours *
-			                                                                         1) + timedelta(minutes=backupMinutes * 1):
+			if now > created + timedelta(days=backupDays * 1) + timedelta(hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "w"
 				backup["state"] = "changed"
 		else:
@@ -233,8 +233,8 @@ def backup():
 		backupType = backup["type"]
 		if backupType == "w":
 			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
-			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7) + timedelta(hours=backupHours * 1) + timedelta(
-			    minutes=backupMinutes * 1):
+			if now > created + timedelta(days=backupDays * 1 + backupWeeks * 7) + timedelta(hours=backupHours *
+			                                                                                1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "m"
 				backup["state"] = "changed"
 		else:
@@ -267,8 +267,8 @@ def backup():
 		backupType = backup["type"]
 		if backupType == "m":
 			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
-			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7 + backupMonths * 28) + timedelta(
-			    hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
+			if now > created + timedelta(days=backupDays * 1 + backupWeeks * 7 +
+			                             backupMonths * 28) + timedelta(hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "y"
 				backup["state"] = "changed"
 		else:
@@ -301,8 +301,8 @@ def backup():
 		backupType = backup["type"]
 		if backupType == "y":
 			created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
-			if datetime.now() > created + timedelta(days=backupDays * 1 + backupWeeks * 7 + backupMonths * 28 + backupYears * 12 *
-			                                        28) + timedelta(hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
+			if now > created + timedelta(days=backupDays * 1 + backupWeeks * 7 + backupMonths * 28 +
+			                             backupYears * 12 * 28) + timedelta(hours=backupHours * 1) + timedelta(minutes=backupMinutes * 1):
 				backup["type"] = "b"
 				backup["state"] = "changed"
 		else:
@@ -315,8 +315,6 @@ def backup():
 				if i > 0:
 					b = backups[i - 1]
 					if b["type"] == backupType:
-						created = datetime.strptime(backup["created"], "%Y%m%dT%H%M%S")
-						edited = datetime.strptime(b["edited"], "%Y%m%dT%H%M%S")
 						mergeInto(b, backup)
 						del backups[i - 1]
 						i -= 1
@@ -331,6 +329,10 @@ def backup():
 		if backup["state"] == "changed":
 			del backup["state"]
 			currentZip = Archive(destination.join(backup["created"] + ".zip", False), "a")
+			if verbose:
+				logger.info("rewrite "+backup["created"]+".zip/state.json with type="+backup["type"])
+				logger.debug(backup)
+				logger.debug(currentZip.listdir())
 			currentZip.remove("state.json")
 			currentZip.writeString(json.dumps(backup, indent=4), "state.json")
 			currentZip.close()
@@ -338,21 +340,25 @@ def backup():
 
 def mergeInto(update, base):
 	if verbose:
-		logger.info("merging " + update["created"] + ".zip into " + base["created"]+".zip")
+		logger.info("merging " + update["created"] + ".zip into " + base["created"] + ".zip")
+		logger.debug(update)
 	baseZip = Archive(destination.join(base["created"] + ".zip", False), "a")
+	logger.debug(baseZip.listdir())
 	updateZip = Archive(destination.join(update["created"] + ".zip", False), "a")
 	base["edited"] = update["edited"]
 	for file in update["files"]:
 		if update["files"][file]["hash"] == "":
 			if base["type"] == "b":
-				if file in base["files"].keys():
-					del base["files"][file]
-					base["state"] = "changed"
+				#if file in base["files"].keys():
+				del base["files"][file]
+				base["state"] = "changed"
 			else:
 				base["files"][file] = update["files"][file]
 				base["state"] = "changed"
-			if file in baseZip.listdir():  #TODO replace with contains for better performance
-				baseZip.remove(file[file.find(os.sep) + 1:])
+			#if file in baseZip.listdir():  #TODO replace with contains for better performance
+			logger.info(baseZip.listdir())
+			baseZip.remove(file[file.find(os.sep) + 1:])#TODO does this work?!!!
+			logger.info(baseZip.listdir())
 		else:
 			if file in base["files"].keys():
 				if base["files"][file]["hash"] != "":
@@ -368,6 +374,7 @@ def mergeInto(update, base):
 				base["state"] = "changed"
 		else:
 			base["folders"][folder] = exists
+	logger.debug(baseZip.listdir())
 	baseZip.close()
 	updateZip.close()
 	destination.join(update["created"] + ".zip", False).rm()
@@ -474,6 +481,8 @@ if __name__ == "__main__":
 			ar = Archive(p, "r")
 			ba = json.loads(ar.read("state.json"))
 			ba["state"] = "uptodate"
+			if verbose:
+				logger.debug(ba["type"])
 			backups.append(ba)
 			ar.close()
 
