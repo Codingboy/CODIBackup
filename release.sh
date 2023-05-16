@@ -3,6 +3,7 @@
 mkdir CODIBackup
 cp -r codi CODIBackup
 rm -rf CODIBackup/codi/__pycache__
+rm -rf CODIBackup/codi/zipfile/__pycache__
 cp CODIBackup.py CODIBackup
 cp CODIBackup.sh CODIBackup
 cp README.md CODIBackup
