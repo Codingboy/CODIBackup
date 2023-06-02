@@ -10,6 +10,7 @@ from codi.codiio import Path, File
 from codi.codiar import Archive
 from logging import getLogger, DEBUG, FileHandler, StreamHandler, Formatter, INFO
 from pathlib import PurePath
+import traceback
 
 __version__ = "0.0.4"
 
@@ -358,13 +359,13 @@ def mergeInto(update, base):
 				base["state"] = "changed"
 			if fileExists:
 				baseZip.remove(file[file.find(os.sep) + 1:])  #TODO temporary removed due to bugged functionality
-				logger.info("remove "+file+" from "+base["created"]+".zip")
+				logger.info("remove " + file + " from " + base["created"] + ".zip")
 		else:
 			if file in base["files"].keys():
 				if base["files"][file]["hash"] != "":
 					#pass
 					baseZip.remove(file[file.find(os.sep) + 1:])  #TODO temporary removed due to bugged functionality
-					logger.info("remove "+file+" from "+base["created"]+".zip")
+					logger.info("remove " + file + " from " + base["created"] + ".zip")
 			base["files"][file] = update["files"][file]
 			baseZip.writeString(updateZip.read(file[file.find(os.sep) + 1:]), file[file.find(os.sep) + 1:])
 			base["state"] = "changed"
@@ -509,4 +510,4 @@ if __name__ == "__main__":
 		if not valid:
 			parser.print_help()
 	except Exception as e:
-		logger.error("exception occured", e)
+		logger.error(traceback.format_exc())
