@@ -12,7 +12,7 @@ from pathlib import PurePath
 import traceback
 from enum import Enum
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 PROJECTNAME = "CODIBackup"
 LOGNAME = PROJECTNAME + ".log"
