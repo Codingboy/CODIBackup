@@ -1,0 +1,9 @@
+build/
+bin/
+*.log
+*.sqlite
+*.pyc
+.build/
+.private/
+*.zip
+testBackup/

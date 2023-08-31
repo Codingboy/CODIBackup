@@ -1,0 +1,38 @@
+[tool.ruff]
+line-length = 140
+
+# Enable Pyflakes `E` and `F` codes by default.
+select = ["E","F","N","W","A"]
+ignore = [
+	"E501",#line length
+	"N802",
+	"N803",
+	"N806",
+	"N816",#mixedCase in global space
+	"F401"#unused imports
+]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+	".git",
+	"__pypackages__",
+	"_build",
+	"build",
+	"dist",
+]
+per-file-ignores = {}
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# Assume Python 3.10.
+target-version = "py310"
+
+[tool.ruff.mccabe]
+# Unlike Flake8, default to a complexity level of 10.
+max-complexity = 10
+
+[tool.yapf]
+COLUMN_LIMIT = 140
+USE_TABS=true
+BLANK_LINE_BEFORE_NESTED_CLASS_OR_DEF=false

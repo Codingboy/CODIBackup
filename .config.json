@@ -1,0 +1,27 @@
+{
+	"minutes":0,
+	"hours":24,
+	"days":28,
+	"weeks":12,
+	"months":12,
+	"years":0,
+	"destination":"/home/bla/backup/",
+	"folders":
+	[
+		"/home/bla/.ssh/",
+		"/home/bla/.vimrc",
+		"/home/bla/.bashrc",
+		"/home/bla/.config/",
+		"/home/bla/Music/",
+		"/home/bla/Documents/",
+		"/home/bla/Pictures/"
+	],
+	"ignore":
+	[
+		".git/",
+		".build/",
+		"__pycache__/",
+		"*.log",
+		"*.sqlite"
+	]
+}
