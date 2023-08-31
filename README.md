@@ -9,7 +9,7 @@ Depending on the configuration you can restore multiple backup points which are 
 ## Installation
 
 ```
-wget https://github.com/Codingboy/CODIBackup/releases/download/v0.1.0/CODIBackup.zip
+wget https://github.com/Codingboy/CODIBackup/releases/tag/v0.1.0/CODIBackup.zip
 unzip CODIBackup.zip
 mv -r CODIBackup ~/
 rm CODIBackup.zip
